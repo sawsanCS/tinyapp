@@ -43,12 +43,31 @@ app.get('/urls/:shortURL', (req, res) => {
     res.render('urls_show', templateVars);
 
 });
+// adding a new route to redirect the user to the corresponding web page
+app.get("/u/:shortURL", (req, res) => {
+    const shortURL = req.params.shortURL;
+    const longURL = urlDatabase[shortURL];
+    if (longURL === undefined) {
+        res.send('non existent');
+       
+    } else {
+        res.redirect(longURL);
+       }
+      
+  });
+  
 //addding our first post request to send the url to the list of urls
 app.post('/urls', (req, res) => {
     longURL = req.body.longURL;
     shortURL = generateRandomString();
     urlDatabase[shortURL]= longURL;
     res.redirect('/urls');
+});
+app.post('/urls/:shortURL', (req, res) => {
+    shortURL = req.params.shortURL;
+    longURL = urlDatabase[shortURL];
+    const templateVars = { shortURL: shortURL, longURL: longURL};
+    res.render('urls_new', templateVars)
 })  
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
