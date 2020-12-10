@@ -27,10 +27,11 @@ app.get("/urls.json", (req, res) => {
   });
   // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
-    const templateVars = {url : urlDatabase[shortURL]};
+    shortURL = req.params.shortURL;
+    const templateVars = {shortURL: shortURL, longURL: urlDatabase[shortURL]};
     res.render('urls_show', templateVars);
 
-})  
+});  
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
