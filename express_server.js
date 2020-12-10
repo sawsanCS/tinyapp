@@ -1,3 +1,6 @@
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 const express = require("express");
 const app = express();
 const PORT = 8080;
@@ -10,7 +13,10 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
+// adding a route to the new url template
+app.get("/urls/new", (req, res) => {
+    res.render("urls_new");
+  });
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
