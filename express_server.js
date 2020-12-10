@@ -25,11 +25,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-// adding a new route to urls 
-app.get("/urls", (req, res) => {
-    const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-  });
+
 app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
   });
@@ -39,7 +35,8 @@ app.get("/urls.json", (req, res) => {
   // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
     shortURL = req.params.shortURL;
-    const templateVars = {shortURL: shortURL, longURL: urlDatabase[shortURL]};
+    longURL = req.body.newLongURL;
+    const templateVars = {shortURL: shortURL, longURL: longURL};
     res.render('urls_show', templateVars);
 
 });
@@ -55,14 +52,12 @@ app.get("/u/:shortURL", (req, res) => {
        }
       
   });
-  
-//addding our first post request to send the url to the list of urls
-app.post('/urls', (req, res) => {
-    longURL = req.body.longURL;
-    shortURL = generateRandomString();
-    urlDatabase[shortURL]= longURL;
-    res.redirect('/urls');
-});
+  // adding a new route to urls 
+app.get("/urls", (req, res) => {
+    const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+  });
+
 //adding a post request to delete a url
 app.post('/urls/:shortURL/delete', (req, res) => {
     shortURL = req.params.shortURL;
@@ -70,12 +65,23 @@ app.post('/urls/:shortURL/delete', (req, res) => {
     delete urlDatabase[shortURL];
     res.redirect('/urls');
 });
+  
+//addding our first post request to send the url to the list of urls
 app.post('/urls/:shortURL', (req, res) => {
     shortURL = req.params.shortURL;
-    longURL = urlDatabase[shortURL];
-    const templateVars = { shortURL: shortURL, longURL: longURL};
-    res.render('urls_new', templateVars)
-})  
+    urlDatabase[shortURL] = req.body.newLongURL;
+    res.redirect('/urls');
+});
+app.post('/urls', (req, res) => {
+    longURL = req.body.longURL;
+    shortURL = generateRandomString();
+    urlDatabase[shortURL]= longURL;
+    res.redirect('/urls');
+});
+
+
+
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
