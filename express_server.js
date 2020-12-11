@@ -39,7 +39,7 @@ const fetchUserByEmail = function(email) {
       return users[u];
     }
   }
-  return false;
+  return null;
 }
 //adding a helper function to generate a random string
 function generateRandomString() {
@@ -51,9 +51,6 @@ app.get("/urls/new", (req, res) => {
     res.render("urls_new");
   });
   //my home page returns message Hello
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
 
 app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
@@ -63,9 +60,11 @@ app.get("/urls.json", (req, res) => {
   });
   // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
+  let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail (userId);
     shortURL = req.params.shortURL;
     longURL = req.body.newLongURL;
-    const templateVars = {shortURL: shortURL, longURL: longURL};
+    const templateVars = {shortURL: shortURL, longURL: longURL, user: user};
     res.render('urls_show', templateVars);
 
 });
@@ -84,12 +83,10 @@ app.get("/u/:shortURL", (req, res) => {
   // adding a new route get to Login
   app.get('/login', (req, res) => {
     let userId = req.cookies['user_id'];
-    if (userId) {
-  let user = {id: userId, email : req.body.email, password: req.body.password};
+    let user = fetchUserByEmail (userId);  
   const templateVars = { user: user, urls: urlDatabase};
   res.render('login', templateVars);
-
-  }
+  
   });
   //adding a post route to register 
 app.post('/register', (req, res) =>{
@@ -108,7 +105,7 @@ app.post('/register', (req, res) =>{
     res.end();
   } else {
     users[userId] = { id: userId, email: user_email, password: user_password};
-    res.cookie('user_id', userId);
+    res.cookie('user_id', user_email);
     res.redirect('/urls')
   }
   
@@ -128,21 +125,18 @@ app.post('/logout', (req,res) => {
 });
   //adding a new route to post Login
 app.post('/login', (req, res) => {
-  if (req.body.email) {
-    res.cookie('user_id', req.body.email);
+  let user = fetchUserByEmail (req.body.email);
+  if (user) {
+    res.cookie('user_id', user.email);
+    res.redirect('/urls');
+  } else {
+    res.status(403);
+    res.send('the user with that email can not be found')
     res.redirect('/urls');
   }
 });
   // adding a new route to urls 
-app.get("/urls", (req, res) => {
-  let user = fetchUserByEmail(req.cookies['user_id']);
-  console.log(user);
-  const templateVars = {
-    user: user,
-    urls: urlDatabase,
-  };
-  res.render("urls_index", templateVars);
-  });
+
 
 //adding a post request to delete a url
 app.post('/urls/:shortURL/delete', (req, res) => {
@@ -159,12 +153,34 @@ app.post('/urls/:shortURL', (req, res) => {
     res.redirect('/urls');
 });
 app.post('/urls', (req, res) => {
-    longURL = req.body.longURL;
-    shortURL = generateRandomString();
-    urlDatabase[shortURL]= longURL;
-    res.redirect('/urls');
+  let userId = req.cookies['user_id'];
+  longURL = req.body.longURL;
+  shortURL = generateRandomString();
+  urlDatabase[shortURL]= longURL;
+  res.redirect('/urls');
 });
-
+app.get("/urls", (req, res) => {
+  // hne elmochkla lewemni je traite les deux cas, chose que jai pas faite
+  let user = fetchUserByEmail(req.cookies['user_id']);
+  console.log(user);
+  if (user) {
+    const templateVars = {
+      user: user,
+      urls: urlDatabase,
+    };
+  
+    res.render("urls_index", templateVars);
+  }
+  else {
+    const templateVars = {
+      user: null,
+      urls: urlDatabase,
+    };
+  
+    res.render("urls_index", templateVars);
+  }
+  
+  });
 
 
 
