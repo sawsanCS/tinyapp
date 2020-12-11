@@ -48,7 +48,12 @@ function generateRandomString() {
 
 // adding a route to the new url template
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  if (req.cookies['user_id']) {
+    res.render("urls_new");
+  } else {
+    res.render('login');
+  }
+  
 });
 //my home page returns message Hello
 
