@@ -11,6 +11,18 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -25,6 +37,7 @@ function generateRandomString() {
 app.get("/urls/new", (req, res) => {
     res.render("urls_new");
   });
+  //my home page returns message Hello
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -63,10 +76,21 @@ app.get("/u/:shortURL", (req, res) => {
     };
     res.render("urls_index", templateVars);
   });
+// adding a get route to register
+app.get('/register', (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  const templateVars = { email: email, password: password, urls: urlDatabase};
+  res.render('register', templateVars);
+});
+//adding a post route to register
+app.post('/register', (req, res) => {
+res.redirect('/urls');
+})
 
   // adding a new route to post logout
 app.post('/logout', (req,res) => {
-  req.clearCookie('username');
+  res.clearCookie('username');
   res.redirect('/urls');
 });
   //adding a new route to post Login
