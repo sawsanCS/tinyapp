@@ -1,10 +1,13 @@
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+
+
 
 
 const express = require("express");
 const app = express();
 const PORT = 8080;
-
+app.use(cookieParser());
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -52,14 +55,37 @@ app.get("/u/:shortURL", (req, res) => {
        }
       
   });
+  // adding a new route get to Login
+  app.get('/login', (req, res) => {
+    let username = req.cookies['username'];
+    const templateVars = {
+      username: username,
+    };
+    res.render("urls_index", templateVars);
+  });
+
+  // adding a new route to post logout
+app.post('/logout', (req,res) => {
+  req.clearCookie('username');
+  res.redirect('/urls');
+});
   //adding a new route to post Login
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
-})
+  if (req.body.username) {
+    res.cookie('username', req.body.username);
+    res.redirect('/urls');
+  } else {
+     res.cookie('username', null);
+     res.redirect('/urls');
+  }
+});
   // adding a new route to urls 
 app.get("/urls", (req, res) => {
-    const templateVars = { urls: urlDatabase };
+  let username = req.cookies['username'];
+  const templateVars = {
+    username: username,
+    urls: urlDatabase,
+  };
   res.render("urls_index", templateVars);
   });
 
