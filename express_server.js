@@ -36,7 +36,7 @@ function generateRandomNumber() {
 const fetchUserByEmail = function(email) {
   for (const u in users) {
     if (users[u].email === email) {
-      return true;
+      return users[u];
     }
   }
   return false;
@@ -83,11 +83,13 @@ app.get("/u/:shortURL", (req, res) => {
   });
   // adding a new route get to Login
   app.get('/login', (req, res) => {
-    let username = req.cookies['username'];
-    const templateVars = {
-      username: username,
-    };
-    res.render("urls_index", templateVars);
+    let userId = req.cookies['user_id'];
+    if (userId) {
+  let user = {id: userId, email : req.body.email, password: req.body.password};
+  const templateVars = { user: user, urls: urlDatabase};
+  res.render('login', templateVars);
+
+  }
   });
   //adding a post route to register 
 app.post('/register', (req, res) =>{
@@ -100,7 +102,7 @@ app.post('/register', (req, res) =>{
     res.send('your email or your password is empty');
     res.end();
   }
-  if (fetchUserByEmail(user_email) === true) {
+  if (fetchUserByEmail(user_email)) {
     res.status(400);
     res.send('Sorry but this email already exists, try to login');
     res.end();
@@ -121,24 +123,22 @@ app.get('/register', (req, res) => {
 
   // adding a new route to post logout
 app.post('/logout', (req,res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
   //adding a new route to post Login
 app.post('/login', (req, res) => {
-  if (req.body.username) {
-    res.cookie('username', req.body.username);
+  if (req.body.email) {
+    res.cookie('user_id', req.body.email);
     res.redirect('/urls');
-  } else {
-     res.cookie('username', null);
-     res.redirect('/urls');
   }
 });
   // adding a new route to urls 
 app.get("/urls", (req, res) => {
-  let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail(req.cookies['user_id']);
+  console.log(user);
   const templateVars = {
-    user: users[userId],
+    user: user,
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
