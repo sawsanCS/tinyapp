@@ -32,7 +32,15 @@ const urlDatabase = {
 function generateRandomNumber() {
   return Math.floor(Math.random() * 100);  
 }
-
+//adding a helper function to fetch if a user exists by his email
+const fetchUserByEmail = function(email) {
+  for (const u in users) {
+    if (users[u].email === email) {
+      return true;
+    }
+  }
+  return false;
+}
 //adding a helper function to generate a random string
 function generateRandomString() {
   return Math.random().toString(36).substr(2,8);
@@ -86,10 +94,22 @@ app.post('/register', (req, res) =>{
   let userId = generateRandomNumber();
   let user_email = req.body.email;
   let user_password = req.body.password;
-  users[userId] = { id: userId, email: user_email, password: user_password};
-  res.cookie('user_id', userId);
-  console.log(users);
-  res.redirect('/urls')
+ 
+  if (user_email === "" || user_password ==="") {
+    res.status(400);
+    res.send('your email or your password is empty');
+    res.end();
+  }
+  if (fetchUserByEmail(user_email) === true) {
+    res.status(400);
+    res.send('Sorry but this email already exists, try to login');
+    res.end();
+  } else {
+    users[userId] = { id: userId, email: user_email, password: user_password};
+    res.cookie('user_id', userId);
+    res.redirect('/urls')
+  }
+  
 })
 // adding a get route to register
 app.get('/register', (req, res) => {
