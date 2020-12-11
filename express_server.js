@@ -28,6 +28,11 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+//adding a helper function to generate a random number
+function generateRandomNumber() {
+  return Math.floor(Math.random() * 100);  
+}
+
 //adding a helper function to generate a random string
 function generateRandomString() {
   return Math.random().toString(36).substr(2,8);
@@ -76,17 +81,22 @@ app.get("/u/:shortURL", (req, res) => {
     };
     res.render("urls_index", templateVars);
   });
+  //adding a post route to register 
+app.post('/register', (req, res) =>{
+ 
+  res.redirect('/urls')
+})
 // adding a get route to register
 app.get('/register', (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-  const templateVars = { email: email, password: password, urls: urlDatabase};
+  userId = generateRandomNumber();
+  user_email = req.body.email;
+  user_password = req.body.password;
+  users[userId] = { id: userId, email: user_email, password: user_password};
+  const templateVars = { user: users[userId], urls: urlDatabase};
   res.render('register', templateVars);
 });
-//adding a post route to register
-app.post('/register', (req, res) => {
-res.redirect('/urls');
-})
+
+
 
   // adding a new route to post logout
 app.post('/logout', (req,res) => {
@@ -105,9 +115,8 @@ app.post('/login', (req, res) => {
 });
   // adding a new route to urls 
 app.get("/urls", (req, res) => {
-  let username = req.cookies['username'];
   const templateVars = {
-    username: username,
+    user: users,
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
