@@ -83,20 +83,21 @@ app.get("/u/:shortURL", (req, res) => {
   });
   //adding a post route to register 
 app.post('/register', (req, res) =>{
- 
+  let userId = generateRandomNumber();
+  let user_email = req.body.email;
+  let user_password = req.body.password;
+  users[userId] = { id: userId, email: user_email, password: user_password};
+  res.cookie('user_id', userId);
+  console.log(users);
   res.redirect('/urls')
 })
 // adding a get route to register
 app.get('/register', (req, res) => {
-  userId = generateRandomNumber();
-  user_email = req.body.email;
-  user_password = req.body.password;
-  users[userId] = { id: userId, email: user_email, password: user_password};
-  const templateVars = { user: users[userId], urls: urlDatabase};
+  let userId = req.cookies['user_id'];
+  let user = {id: userId, email : req.body.email, password: req.body.password};
+  const templateVars = { user: user, urls: urlDatabase};
   res.render('register', templateVars);
 });
-
-
 
   // adding a new route to post logout
 app.post('/logout', (req,res) => {
@@ -115,8 +116,9 @@ app.post('/login', (req, res) => {
 });
   // adding a new route to urls 
 app.get("/urls", (req, res) => {
+  let userId = req.cookies['user_id'];
   const templateVars = {
-    user: users,
+    user: users[userId],
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
