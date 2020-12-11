@@ -10,107 +10,197 @@ const PORT = 8080;
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
+
+//adding a helper function to generate a random number
+function generateRandomNumber() {
+  return Math.floor(Math.random() * 100);
+}
+//adding a helper function to fetch if a user exists by his email
+const fetchUserByEmail = function (email) {
+  for (const u in users) {
+    if (users[u].email === email) {
+      return users[u];
+    }
+  }
+  return null;
+}
 //adding a helper function to generate a random string
 function generateRandomString() {
-  return Math.random().toString(36).substr(2,8);
+  return Math.random().toString(36).substr(2, 8);
 }
 
 // adding a route to the new url template
 app.get("/urls/new", (req, res) => {
+  if (req.cookies['user_id']) {
     res.render("urls_new");
-  });
-app.get("/", (req, res) => {
-  res.send("Hello!");
+  } else {
+    res.render('login');
+  }
+  
 });
+//my home page returns message Hello
 
 app.get("/urls.json", (req, res) => {
-    res.json(urlDatabase);
-  });
-  app.get("/hello", (req, res) => {
-    res.send("<html><body>Hello <b>World</b></body></html>\n");
-  });
-  // adding a new route to display a single route
+  res.json(urlDatabase);
+});
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
+});
+// adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
-    shortURL = req.params.shortURL;
-    longURL = req.body.newLongURL;
-    const templateVars = {shortURL: shortURL, longURL: longURL};
-    res.render('urls_show', templateVars);
+  let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail(userId);
+  shortURL = req.params.shortURL;
+  longURL = req.body.newLongURL;
+  const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
+  res.render('urls_show', templateVars);
 
 });
 // adding a new route to redirect the user to the corresponding web page
 app.get("/u/:shortURL", (req, res) => {
-    const shortURL = req.params.shortURL;
-    const longURL = urlDatabase[shortURL];
-    if (longURL === undefined) {
-        res.send('non existent');
-       
-    } else {
-        res.redirect(longURL);
-       }
-      
-  });
-  // adding a new route get to Login
-  app.get('/login', (req, res) => {
-    let username = req.cookies['username'];
-    const templateVars = {
-      username: username,
-    };
-    res.render("urls_index", templateVars);
-  });
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  if (longURL === undefined) {
+    res.send('non existent');
 
-  // adding a new route to post logout
-app.post('/logout', (req,res) => {
-  req.clearCookie('username');
+  } else {
+    res.redirect(longURL);
+  }
+
+});
+// adding a new route get to Login
+app.get('/login', (req, res) => {
+  let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail(userId);
+  const templateVars = { user: user, urls: urlDatabase };
+  res.render('login', templateVars);
+
+});
+//adding a post route to register 
+app.post('/register', (req, res) => {
+  let userId = generateRandomNumber();
+  let user_email = req.body.email;
+  let user_password = req.body.password;
+
+  if (user_email === "" || user_password === "") {
+    res.status(400);
+    res.send('your email or your password is empty');
+    res.end();
+  }
+  if (fetchUserByEmail(user_email)) {
+    res.status(400);
+    res.send('Sorry but this email already exists, try to login');
+    res.end();
+  } else {
+    users[userId] = { id: userId, email: user_email, password: user_password };
+    res.cookie('user_id', user_email);
+    res.redirect('/urls')
+  }
+
+})
+// adding a get route to register
+app.get('/register', (req, res) => {
+  let userId = req.cookies['user_id'];
+  if (userId) {
+    email = userId;
+  
+  } else { email = null;}
+  let user = { email: userId };
+  const templateVars = { user: user, urls: urlDatabase };
+  res.render('register', templateVars);
+
+
+});
+
+// adding a new route to post logout
+app.post('/logout', (req, res) => {
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
-  //adding a new route to post Login
+//adding a new route to post Login
 app.post('/login', (req, res) => {
-  if (req.body.username) {
-    res.cookie('username', req.body.username);
-    res.redirect('/urls');
+  let user = fetchUserByEmail(req.body.email);
+  let email = req.body.email;
+  let password = req.body.password;
+  if (user) {
+    if (user.password !== password) {
+      res.status(403);
+      res.send('incorrect password');
+    } else {
+      res.cookie('user_id', user.email);
+      res.redirect('/urls');
+    }
   } else {
-     res.cookie('username', null);
-     res.redirect('/urls');
+    res.status(403);
+    res.send('the user with that email can not be found');
   }
+
 });
-  // adding a new route to urls 
-app.get("/urls", (req, res) => {
-  let username = req.cookies['username'];
-  const templateVars = {
-    username: username,
-    urls: urlDatabase,
-  };
-  res.render("urls_index", templateVars);
-  });
+// adding a new route to urls 
+
 
 //adding a post request to delete a url
 app.post('/urls/:shortURL/delete', (req, res) => {
-    shortURL = req.params.shortURL;
-    console.log(shortURL);
-    delete urlDatabase[shortURL];
-    res.redirect('/urls');
-});
-  
-//addding our first post request to send the url to the list of urls
-app.post('/urls/:shortURL', (req, res) => {
-    shortURL = req.params.shortURL;
-    urlDatabase[shortURL] = req.body.newLongURL;
-    res.redirect('/urls');
-});
-app.post('/urls', (req, res) => {
-    longURL = req.body.longURL;
-    shortURL = generateRandomString();
-    urlDatabase[shortURL]= longURL;
-    res.redirect('/urls');
+  shortURL = req.params.shortURL;
+  console.log(shortURL);
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
 });
 
+//addding our first post request to send the url to the list of urls
+app.post('/urls/:shortURL', (req, res) => {
+  shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.newLongURL;
+  res.redirect('/urls');
+});
+app.post('/urls', (req, res) => {
+  let userId = req.cookies['user_id'];
+  longURL = req.body.longURL;
+  shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  res.redirect('/urls');
+});
+app.get("/urls", (req, res) => {
+  // hne elmochkla lewemni je traite les deux cas, chose que jai pas faite
+  let user = fetchUserByEmail(req.cookies['user_id']);
+  console.log(user);
+  if (user) {
+    const templateVars = {
+      user: user,
+      urls: urlDatabase,
+    };
+
+    res.render("urls_index", templateVars);
+  }
+  else {
+    const templateVars = {
+      user: null,
+      urls: urlDatabase,
+    };
+
+    res.render("urls_index", templateVars);
+  }
+
+});
 
 
 
