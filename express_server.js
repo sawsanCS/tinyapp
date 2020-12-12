@@ -1,9 +1,5 @@
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-
-
-
-
 const express = require("express");
 const app = express();
 const PORT = 8080;
@@ -174,9 +170,10 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 app.post('/urls', (req, res) => {
   let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail(userId);
   longURL = req.body.longURL;
   shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {longURL: longURL, userID: user.id};
   res.redirect('/urls');
 });
 app.get("/urls", (req, res) => {
