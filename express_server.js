@@ -24,7 +24,17 @@ const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+//adding a helper function to verify if a shortened url belong to a user
+const urlforUser = function(url, id) {
+  const urls = urlsForUser (id);
+  for (const u in urls) {
+    if (urls[u].userID === id && u === url) {
+      return true;
+    }
+  }
+  return false;
 
+}
 //adding a helper function to return the urls of a specified user
 const urlsForUser = function(id) {
   let urls = {};
@@ -76,10 +86,16 @@ app.get('/urls/:shortURL', (req, res) => {
   let userId = req.cookies['user_id'];
   let user = fetchUserByEmail(userId);
   shortURL = req.params.shortURL;
-  longURL = req.body.newLongURL;
-  const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
-  res.render('urls_show', templateVars);
-
+  if (urlforUser (shortURL, user.id)) {
+    longURL = req.body.newLongURL;
+    const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
+    res.render('urls_show', templateVars);
+  
+  }
+  else {
+    res.send ('Sorry but this short URL was not created by you, you cant access it');
+  }
+  
 });
 // adding a new route to redirect the user to the corresponding web page
 app.get("/u/:shortURL", (req, res) => {
