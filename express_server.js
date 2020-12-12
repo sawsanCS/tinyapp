@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const express = require("express");
@@ -11,12 +12,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 }
 
@@ -129,10 +130,10 @@ app.post('/register', (req, res) => {
   let userId = generateRandomNumber();
   let user_email = req.body.email;
   let user_password = req.body.password;
-
+  let hashed_user_password = bcrypt.hashSync(user_password, 10);
   if (user_email === "" || user_password === "") {
     res.status(400);
-    res.send('your email or your password is empty');
+    res.send('your email or your password is empty, please fill in these two fields');
     res.end();
   }
   if (fetchUserByEmail(user_email)) {
@@ -140,7 +141,7 @@ app.post('/register', (req, res) => {
     res.send('Sorry but this email already exists, try to login');
     res.end();
   } else {
-    users[userId] = { id: userId, email: user_email, password: user_password };
+    users[userId] = { id: userId, email: user_email, password: hashed_user_password };
     res.cookie('user_id', user_email);
     res.redirect('/urls')
   }
