@@ -172,7 +172,7 @@ app.post('/login', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   if (user) {
-    if (user.password !== password) {
+    if (user.password !== bcrypt.hashSync(password)) {
       res.status(403);
       res.send('incorrect password');
     } else {
