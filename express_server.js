@@ -84,18 +84,25 @@ app.get("/hello", (req, res) => {
 // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
   let userId = req.cookies['user_id'];
-  let user = fetchUserByEmail(userId);
-  shortURL = req.params.shortURL;
-  if (urlforUser (shortURL, user.id)) {
-    longURL = req.body.newLongURL;
-    const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
-    res.render('urls_show', templateVars);
-  
+  if (!userId) {
+    res.send('you need to login first to be able to see shortened urls')
   }
   else {
-    res.send ('Sorry but this short URL was not created by you, you cant access it');
+    let user = fetchUserByEmail(userId);
+    shortURL = req.params.shortURL;
+    if (urlforUser (shortURL, user.id)) {
+      longURL = req.body.newLongURL;
+      const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
+      res.render('urls_show', templateVars);
+    
+    }
+    else {
+      res.send ('Sorry but this short URL was not created by you, you cant access it');
+    }
+    
+
   }
-  
+ 
 });
 // adding a new route to redirect the user to the corresponding web page
 app.get("/u/:shortURL", (req, res) => {
