@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt'); // to hash passwords
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const express = require("express");
@@ -8,6 +8,7 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
+// list of users : object
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -20,11 +21,13 @@ const users = {
     password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 }
-
+//updated our urlDatabase using the shortURL as key
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+// helper function 
+
 //adding a helper function to verify if a shortened url belong to a user
 const urlforUser = function(url, id) {
   const urls = urlsForUser (id);
@@ -65,7 +68,11 @@ function generateRandomString() {
   return Math.random().toString(36).substr(2, 8);
 }
 
-// adding a route to the new url template
+
+//routes 
+
+// adding a route to the new url template, where the user will add a new url 
+// get 
 app.get("/urls/new", (req, res) => {
   if (req.cookies['user_id']) {
     res.render("urls_new");
@@ -74,7 +81,7 @@ app.get("/urls/new", (req, res) => {
   }
   
 });
-//my home page returns message Hello
+//adding a route that displays our urlDatabase as a json document
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -85,24 +92,28 @@ app.get("/hello", (req, res) => {
 // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
   let userId = req.cookies['user_id'];
-  if (!userId) {
-    res.send('you need to login first to be able to see shortened urls')
-  }
-  else {
+  console.log(userId);
+
     let user = fetchUserByEmail(userId);
     shortURL = req.params.shortURL;
-    if (urlforUser (shortURL, user.id)) {
-      longURL = urlDatabase[shortURL].longURL;
-      const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
-      res.render('urls_show', templateVars);
-    
+    if (!user) {
+      res.send('<html> <body> <h2 style= "color:blue;"> you need to login first to be able to see shortened urls</h2></body></html>\n');
     }
     else {
-      res.send ('Sorry but this short URL was not created by you, you cant access it');
+      if (urlforUser (shortURL, user.id)) {
+        longURL = urlDatabase[shortURL].longURL;
+        const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
+        res.render('urls_show', templateVars);
+      
+      }
+      else {
+        res.send ('<html> <body> <h2 style= "color:blue;">Sorry but this short URL was not created by you, you cant access it</h2></body></html>\n');
+      }
+      
     }
     
 
-  }
+  
  
 });
 // adding a new route to redirect the user to the corresponding web page
@@ -133,12 +144,12 @@ app.post('/register', (req, res) => {
   let hashed_user_password = bcrypt.hashSync(user_password, 10);
   if (user_email === "" || user_password === "") {
     res.status(400);
-    res.send('your email or your password is empty, please fill in these two fields');
+    res.send('<html> <body> <h2 style= "color:blue;">your email or your password is empty, please fill in these two fields </h2></body></html>');
     res.end();
   }
   if (fetchUserByEmail(user_email)) {
     res.status(400);
-    res.send('Sorry but this email already exists, try to login');
+    res.send('<html> <body> <h2 style= "color:blue;">Sorry but this email already exists, try to login</h2></body></html>');
     res.end();
   } else {
     users[userId] = { id: userId, email: user_email, password: hashed_user_password };
@@ -179,11 +190,11 @@ app.post('/login', (req, res) => {
     
     } else {
       res.status(403);
-      res.send('incorrect password');
+      res.send('<html> <body> <h2 style= "color:blue;">incorrect password</h2></body></html>');
     }
   } else {
     res.status(403);
-    res.send('the user with that email can not be found');
+    res.send('<html> <body> <h2 style= "color:blue;">the user with that email can not be found</h2></body></html>');
   }
 
 });
