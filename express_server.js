@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt'); // to hash passwords
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+var cookieSession = require('cookie-session')
 const express = require("express");
 const app = express();
 const PORT = 8080;
