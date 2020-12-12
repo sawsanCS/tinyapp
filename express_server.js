@@ -21,11 +21,21 @@ const users = {
 }
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
+//adding a helper function to return the urls of a specified user
+const urlsForUser = function(id) {
+  let urls = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      urls[url] = {longURL: urlDatabase[url].longURL, userID: urlDatabase[url].userID}
+    }
+  }
+  return urls;
 
+}
 //adding a helper function to generate a random number
 function generateRandomNumber() {
   return Math.floor(Math.random() * 100);
@@ -177,13 +187,15 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls');
 });
 app.get("/urls", (req, res) => {
-  // hne elmochkla lewemni je traite les deux cas, chose que jai pas faite
+
   let user = fetchUserByEmail(req.cookies['user_id']);
+  
   console.log(user);
   if (user) {
+    let urls = urlsForUser (user.id);
     const templateVars = {
       user: user,
-      urls: urlDatabase,
+      urls: urls,
     };
 
     res.render("urls_index", templateVars);
