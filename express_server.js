@@ -190,9 +190,23 @@ app.post('/login', (req, res) => {
 //adding a post request to delete a url
 app.post('/urls/:shortURL/delete', (req, res) => {
   shortURL = req.params.shortURL;
+  let userId = req.cookies['user_id'];
+  let user = fetchUserByEmail(userId);
+  if (user) {
+
+  
+  if (urlforUser(shortURL, user.id)) {
+  
   console.log(shortURL);
   delete urlDatabase[shortURL];
   res.redirect('/urls');
+  } else {
+    res.send('sorry this shortened url can only be deleted by its owner');
+  }
+}
+else {
+  res.send('sorry you cant delete while you didnt log in');
+}
 });
 
 //addding our first post request to send the url to the list of urls
