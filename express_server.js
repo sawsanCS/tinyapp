@@ -92,7 +92,7 @@ app.get('/urls/:shortURL', (req, res) => {
     let user = fetchUserByEmail(userId);
     shortURL = req.params.shortURL;
     if (urlforUser (shortURL, user.id)) {
-      longURL = req.body.newLongURL;
+      longURL = urlDatabase[shortURL].longURL;
       const templateVars = { shortURL: shortURL, longURL: longURL, user: user };
       res.render('urls_show', templateVars);
     
@@ -168,16 +168,18 @@ app.post('/logout', (req, res) => {
 });
 //adding a new route to post Login
 app.post('/login', (req, res) => {
-  let user = fetchUserByEmail(req.body.email);
   let email = req.body.email;
   let password = req.body.password;
+  let user = fetchUserByEmail(email);
+  
   if (user) {
-    if (user.password !== bcrypt.hashSync(password)) {
-      res.status(403);
-      res.send('incorrect password');
-    } else {
+    if (bcrypt.compareSync(password, user.password)) {
       res.cookie('user_id', user.email);
       res.redirect('/urls');
+    
+    } else {
+      res.status(403);
+      res.send('incorrect password');
     }
   } else {
     res.status(403);
@@ -213,7 +215,7 @@ else {
 //addding our first post request to send the url to the list of urls
 app.post('/urls/:shortURL', (req, res) => {
   shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = req.body.newLongURL;
+  urlDatabase[shortURL].longURL = req.body.newLongURL;
   res.redirect('/urls');
 });
 app.post('/urls', (req, res) => {
