@@ -198,7 +198,6 @@ app.post('/login', (req, res) => {
   }
 
 });
-// adding a new route to urls 
 
 
 //adding a post request to delete a url
@@ -208,18 +207,16 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   let user = fetchUserByEmail(userId);
   if (user) {
 
-  
-  if (urlforUser(shortURL, user.id)) {
-  
-  console.log(shortURL);
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+    if (urlforUser(shortURL, user.id)) {
+     console.log(shortURL);
+     delete urlDatabase[shortURL];
+     res.redirect('/urls');
   } else {
-    res.send('sorry this shortened url can only be deleted by its owner');
+    res.send('<html> <body> <h2 style= "color:blue;">sorry this shortened url can only be deleted by its owner</h2></body></html>');
   }
 }
 else {
-  res.send('sorry you cant delete while you didnt log in');
+  res.send('<html> <body> <h2 style= "color:blue;">sorry you cant delete while you didnt log in</h2></body></html>');
 }
 });
 
@@ -229,6 +226,7 @@ app.post('/urls/:shortURL', (req, res) => {
   urlDatabase[shortURL].longURL = req.body.newLongURL;
   res.redirect('/urls');
 });
+// adding a post route to render the urls
 app.post('/urls', (req, res) => {
   let userId = req.cookies['user_id'];
   let user = fetchUserByEmail(userId);
@@ -237,6 +235,7 @@ app.post('/urls', (req, res) => {
   urlDatabase[shortURL] = {longURL: longURL, userID: user.id};
   res.redirect('/urls');
 });
+//adding a get route to urls
 app.get("/urls", (req, res) => {
 
   let user = fetchUserByEmail(req.cookies['user_id']);
