@@ -74,7 +74,7 @@ app.get('/urls/:shortURL', (req, res) => {
 // adding a new route to redirect the user to the corresponding web page
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   if (longURL === undefined) {
     res.send('non existent');
 
