@@ -58,10 +58,10 @@ function generateRandomNumber() {
   return Math.floor(Math.random() * 100);
 }
 //adding a helper function to fetch if a user exists by his email
-const fetchUserByEmail = function (email) {
-  for (const u in users) {
-    if (users[u].email === email) {
-      return users[u];
+const getUserByEmail = function (email, listUsers) {
+  for (const u in listUsers) {
+    if (listUsers[u].email === email) {
+      return listUsers[u];
     }
   }
   return null;
@@ -97,7 +97,7 @@ app.get('/urls/:shortURL', (req, res) => {
   let userId = req.session.user_id;
   console.log(userId);
 
-    let user = fetchUserByEmail(userId);
+    let user = getUserByEmail(userId, users);
     shortURL = req.params.shortURL;
     if (!user) {
       res.send('<html> <body> <h2 style= "color:blue;"> you need to login first to be able to see shortened urls</h2></body></html>\n');
@@ -134,7 +134,7 @@ app.get("/u/:shortURL", (req, res) => {
 // adding a new route get to Login
 app.get('/login', (req, res) => {
   let userId = req.session.user_id;
-  let user = fetchUserByEmail(userId);
+  let user = getUserByEmail(userId, users);
   const templateVars = { user: user, urls: urlDatabase };
   res.render('login', templateVars);
 
@@ -150,13 +150,13 @@ app.post('/register', (req, res) => {
     res.send('<html> <body> <h2 style= "color:blue;">your email or your password is empty, please fill in these two fields </h2></body></html>');
     res.end();
   }
-  if (fetchUserByEmail(user_email)) {
+  if (getUserByEmail(user_email, users)) {
     res.status(400);
     res.send('<html> <body> <h2 style= "color:blue;">Sorry but this email already exists, try to login</h2></body></html>');
     res.end();
   } else {
     users[userId] = { id: userId, email: user_email, password: hashed_user_password };
-    res.session.user_id= user_email;
+    req.session.user_id = user_email;
     res.redirect('/urls')
   }
 
@@ -185,7 +185,7 @@ app.post('/logout', (req, res) => {
 app.post('/login', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let user = fetchUserByEmail(email);
+  let user = getUserByEmail(email, users);
   
   if (user) {
     if (bcrypt.compareSync(password, user.password)) {
@@ -209,7 +209,7 @@ app.post('/login', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   shortURL = req.params.shortURL;
   let userId = req.session.user_id;
-  let user = fetchUserByEmail(userId);
+  let user = getUserByEmail(userId, users);
   if (user) {
 
     if (urlforUser(shortURL, user.id)) {
@@ -234,7 +234,7 @@ app.post('/urls/:shortURL', (req, res) => {
 // adding a post route to render the urls
 app.post('/urls', (req, res) => {
   let userId = req.session.user_id;
-  let user = fetchUserByEmail(userId);
+  let user = getUserByEmail(userId, users);
   longURL = req.body.longURL;
   shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL: longURL, userID: user.id};
@@ -243,7 +243,7 @@ app.post('/urls', (req, res) => {
 //adding a get route to urls
 app.get("/urls", (req, res) => {
 
-  let user = fetchUserByEmail(req.session.user_id);
+  let user = getUserByEmail(req.session.user_id, users);
   
   console.log(user);
   if (user) {
