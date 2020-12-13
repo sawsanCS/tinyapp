@@ -1,3 +1,4 @@
+const getUserByEmail = require('./helpers')
 const bcrypt = require('bcrypt'); // to hash passwords
 const bodyParser = require("body-parser");
 var cookieSession = require('cookie-session');
@@ -57,15 +58,7 @@ const urlsForUser = function(id) {
 function generateRandomNumber() {
   return Math.floor(Math.random() * 100);
 }
-//adding a helper function to fetch if a user exists by his email
-const getUserByEmail = function (email, listUsers) {
-  for (const u in listUsers) {
-    if (listUsers[u].email === email) {
-      return listUsers[u];
-    }
-  }
-  return null;
-}
+
 //adding a helper function to generate a random string
 function generateRandomString() {
   return Math.random().toString(36).substr(2, 8);
