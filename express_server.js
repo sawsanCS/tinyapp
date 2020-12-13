@@ -14,6 +14,11 @@ app.use(cookieSession({
 app.use(bodyParser.urlencoded({ extended: true }));
 // list of users : object
 const users = {
+  "myUserRandomID": {
+    id: "myUserRandomID",
+    email: "sawsan_sli3i@live.fr",
+    password: bcrypt.hashSync("moi", 10)
+  },
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
@@ -71,7 +76,9 @@ function generateRandomString() {
 // get 
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    res.render("urls_new");
+    let user = getUserByEmail (req.session.user_id);
+    const templateVars = { user: user}
+    res.render("urls_new", templateVars);
   } else {
     res.render('login');
   }
@@ -234,10 +241,11 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls');
 });
 //adding a get route to urls
-app.get("/urls", (req, res) => {
+app.get('/urls', (req, res) => {
 
   let user = getUserByEmail(req.session.user_id, users);
   
+    
   console.log(user);
   if (user) {
     let urls = urlsForUser (user.id);
@@ -245,20 +253,28 @@ app.get("/urls", (req, res) => {
       user: user,
       urls: urls,
     };
-
     res.render("urls_index", templateVars);
   }
   else {
     const templateVars = {
       user: null,
-      urls: urlDatabase,
+      urls: null,
     };
-
-    res.render("urls_index", templateVars);
+    res.render('urls_index', templateVars);
   }
 
 });
-
+// adding a get route to the main page
+app.get('/', (req,res) => {
+  let user = getUserByEmail (req.session.user_id);
+  let urls = urlsForUser(req.session.user_id)
+  const templateVars = { user: user, urls: urls};
+  if (req.session.user_id) {
+    res.render("urls_index", templateVars);
+} else {
+  res.render('login', templateVars);
+}
+})
 
 
 app.listen(PORT, () => {
