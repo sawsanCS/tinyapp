@@ -7,3 +7,4 @@ const getUserByEmail = function (email, listUsers) {
     }
     return null;
   }
+  module.exports = getUserByEmail;

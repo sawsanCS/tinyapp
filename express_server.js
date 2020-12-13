@@ -33,7 +33,7 @@ const users = {
 //updated our urlDatabase using the shortURL as key
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  i3BoGr: { longURL: "https://www.google.ca", userID: "myUserRandomID" }
 };
 // helper function 
 
@@ -76,11 +76,12 @@ function generateRandomString() {
 // get 
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    let user = getUserByEmail (req.session.user_id);
-    const templateVars = { user: user}
+    let user = getUserByEmail (req.session.user_id, users);
+    const templateVars = { user: user, urls: urlDatabase};
     res.render("urls_new", templateVars);
   } else {
-    res.render('login');
+    const templateVars = { user: null}
+    res.render('login', templateVars);
   }
   
 });
@@ -123,9 +124,8 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
-  if (longURL === undefined) {
+  if (!urlDatabase[shortURL]) {
     res.send('non existent');
-
   } else {
     res.redirect(longURL);
   }
