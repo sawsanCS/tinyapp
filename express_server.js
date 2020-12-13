@@ -1,12 +1,15 @@
 const bcrypt = require('bcrypt'); // to hash passwords
 const bodyParser = require("body-parser");
-var cookieSession = require('cookie-session')
+var cookieSession = require('cookie-session');
 const express = require("express");
 const app = express();
 const PORT = 8080;
-app.use(cookieParser());
-app.set("view engine", "ejs");
 
+app.set("view engine", "ejs");
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}))
 app.use(bodyParser.urlencoded({ extended: true }));
 // list of users : object
 const users = {
@@ -74,7 +77,7 @@ function generateRandomString() {
 // adding a route to the new url template, where the user will add a new url 
 // get 
 app.get("/urls/new", (req, res) => {
-  if (req.cookies['user_id']) {
+  if (req.session.user_id) {
     res.render("urls_new");
   } else {
     res.render('login');
@@ -91,7 +94,7 @@ app.get("/hello", (req, res) => {
 });
 // adding a new route to display a single route
 app.get('/urls/:shortURL', (req, res) => {
-  let userId = req.cookies['user_id'];
+  let userId = req.session.user_id;
   console.log(userId);
 
     let user = fetchUserByEmail(userId);
@@ -130,7 +133,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 // adding a new route get to Login
 app.get('/login', (req, res) => {
-  let userId = req.cookies['user_id'];
+  let userId = req.session.user_id;
   let user = fetchUserByEmail(userId);
   const templateVars = { user: user, urls: urlDatabase };
   res.render('login', templateVars);
@@ -153,14 +156,14 @@ app.post('/register', (req, res) => {
     res.end();
   } else {
     users[userId] = { id: userId, email: user_email, password: hashed_user_password };
-    res.cookie('user_id', user_email);
+    res.session.user_id= user_email;
     res.redirect('/urls')
   }
 
 })
 // adding a get route to register
 app.get('/register', (req, res) => {
-  let userId = req.cookies['user_id'];
+  let userId = req.session.user_id;
   if (userId) {
     email = userId;
   
@@ -174,7 +177,8 @@ app.get('/register', (req, res) => {
 
 // adding a new route to post logout
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  res.clearCookie('session');
+  res.clearCookie('session.sig');
   res.redirect('/urls');
 });
 //adding a new route to post Login
@@ -185,7 +189,8 @@ app.post('/login', (req, res) => {
   
   if (user) {
     if (bcrypt.compareSync(password, user.password)) {
-      res.cookie('user_id', user.email);
+      req.session.user_id = user.email;
+     
       res.redirect('/urls');
     
     } else {
@@ -203,7 +208,7 @@ app.post('/login', (req, res) => {
 //adding a post request to delete a url
 app.post('/urls/:shortURL/delete', (req, res) => {
   shortURL = req.params.shortURL;
-  let userId = req.cookies['user_id'];
+  let userId = req.session.user_id;
   let user = fetchUserByEmail(userId);
   if (user) {
 
@@ -228,7 +233,7 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 // adding a post route to render the urls
 app.post('/urls', (req, res) => {
-  let userId = req.cookies['user_id'];
+  let userId = req.session.user_id;
   let user = fetchUserByEmail(userId);
   longURL = req.body.longURL;
   shortURL = generateRandomString();
@@ -238,7 +243,7 @@ app.post('/urls', (req, res) => {
 //adding a get route to urls
 app.get("/urls", (req, res) => {
 
-  let user = fetchUserByEmail(req.cookies['user_id']);
+  let user = fetchUserByEmail(req.session.user_id);
   
   console.log(user);
   if (user) {
